@@ -1,13 +1,14 @@
 /**
- * DeepSeek Sidebar Lite — content script
+ * Sidebar Ask — content script
  *
- * 运行在 chat.deepseek.com（含侧边栏 iframe、独立窗口、普通标签页）。
- * 唯一职责：把 storage 里待处理的文字，塞进 DeepSeek 的输入框。
+ * Runs on chat.deepseek.com — inside the sidebar iframe, a standalone window,
+ * or an ordinary tab. Its only job: write the pending text into DeepSeek's
+ * input box.
  *
- * 注入手法取自站点自身的 setValue 实现（main.js）：
- *   用 HTMLTextAreaElement.prototype 的原生 value setter 赋值，
- *   再派发冒泡的 input 事件 —— 这样 React 的受控组件才会同步状态。
- * 直接 el.value = x 会被 React 的 value tracker 吞掉。
+ * The injection mirrors the site's own setValue implementation (main.js): assign
+ * through the native HTMLTextAreaElement `value` setter, then dispatch a bubbling
+ * `input` event, so React's controlled component picks the change up.
+ * A plain `el.value = x` is swallowed by React's value tracker.
  */
 
 (() => {
@@ -17,9 +18,9 @@
   window.__dsLiteInjected = true;
 
   const PENDING_KEY = 'dsPending';
-  const TTL_MS = 120000;   // 待处理文本的生命周期：2 分钟
-  const FAST_MS = 12000;   // 前 12 秒高频轮询（等 SPA 挂载），之后降频
-  const MAX_WRITES = 4;    // 同一段文本最多写入几次，防止反复追加
+  const TTL_MS = 120000;   // how long a pending entry stays valid: 2 minutes
+  const FAST_MS = 12000;   // poll quickly for the first 12s (while the SPA mounts)
+  const MAX_WRITES = 4;    // cap writes per text so a retry never appends twice
   const PRIMARY_SEL = 'textarea[name="user query"]';
 
   let handledNonce = 0;
@@ -38,7 +39,7 @@
     for (const el of document.querySelectorAll(PRIMARY_SEL)) {
       if (usable(el)) return el;
     }
-    // 兜底：站点改版后 name 变了也不至于直接失效
+    // Fallback in case the site renames the field
     for (const el of document.querySelectorAll('textarea')) {
       if (usable(el)) return el;
     }
@@ -57,11 +58,11 @@
       const len = (el.value || '').length;
       el.setSelectionRange(len, len);
     } catch (_) {
-      /* 某些状态下 setSelectionRange 会抛错，忽略 */
+      /* setSelectionRange can throw in some states; harmless here */
     }
   }
 
-  /** 已有草稿时追加而不是覆盖 —— 用户手打的字不能丢 */
+  /** Append to an existing draft rather than replacing it — never eat the user's typing */
   function compose(current, incoming) {
     const base = (current || '').replace(/\s+$/, '');
     return base ? `${base}\n\n${incoming}` : incoming;
@@ -69,7 +70,7 @@
 
   /**
    * @param {string} text
-   * @param {number} deadline 超过这个时间就不再尝试
+   * @param {number} deadline stop trying after this timestamp
    */
   async function inject(text, deadline) {
     if (injecting) return false;
@@ -83,7 +84,7 @@
         const el = findInput();
 
         if (el) {
-          // 已经在框里了就直接收工（重试路径下避免重复追加）
+          // Already in the box — finish here, so a retry never appends twice
           if ((el.value || '').includes(text)) {
             el.focus();
             caretToEnd(el);
@@ -96,8 +97,8 @@
             el.focus();
             caretToEnd(el);
 
-            // React 受控组件可能在下一帧用内部 state 覆写我们写的值，
-            // 等一拍再校验，被覆写就重来。
+            // React may overwrite the value from its own state on the next
+            // frame, so wait one tick and verify. Retry if it got clobbered.
             await sleep(160);
 
             if (el.isConnected && (el.value || '').includes(text)) {
@@ -129,19 +130,21 @@
     if (!p || typeof p.text !== 'string' || !p.text) return;
 
     const ts = Number(p.ts) || 0;
-    if (Date.now() - ts > TTL_MS) return;            // 过期内容不要莫名其妙冒出来
-    if (p.nonce && p.nonce === handledNonce) return; // 同一条只处理一次
+    if (Date.now() - ts > TTL_MS) return;            // stale entries must not resurface
+    if (p.nonce && p.nonce === handledNonce) return; // handle each entry once
 
-    // 只有送对了地方才注入：'iframe' 给侧边栏，'window' 给独立窗口。
-    // 否则用户开着 DeepSeek 标签页时，内容会被不相干的页面抢走。
+    // Only inject where it was addressed: 'iframe' for the sidebar,
+    // 'window' for the standalone window. Otherwise a DeepSeek tab the user
+    // happens to have open would swallow the text.
     const inFrame = !!(window.parent && window.parent !== window);
     if (p.target === 'iframe' && !inFrame) return;
     if (p.target === 'window' && inFrame) return;
 
     handledNonce = p.nonce || 0;
 
-    // 未登录时会停在 /sign_in（没有输入框）。此时不要放弃：
-    // 给足 2 分钟，用户登录完成后文字仍会自动落进输入框。
+    // While signed out the page sits on /sign_in and has no input box.
+    // Don't give up: keep trying for the full TTL so the text still lands
+    // once the user is through the login screen.
     const ok = await inject(p.text, ts + TTL_MS);
 
     if (ok) {
@@ -159,16 +162,16 @@
     } catch (_) {}
   }
 
-  /* 面板已开着时，storage 变化是唯一的送达通道 */
+  /* With the panel already open, a storage change is the only delivery path */
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local' || !changes[PENDING_KEY]) return;
     consumePending();
   });
 
-  /* 面板刚打开、iframe 刚加载时的首次读取 */
+  /* First read, for a freshly loaded panel iframe */
   consumePending();
 
-  /* 存活探测：父级 ping，我们 pong。侧边栏据此判断 iframe 是否真的起来了 */
+  /* Liveness probe: the panel pings, we pong — that's how it knows we're really here */
   window.addEventListener('message', (ev) => {
     const d = ev.data;
     if (!d || d.__dsLite !== true) return;

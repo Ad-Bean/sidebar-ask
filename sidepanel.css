@@ -1,6 +1,7 @@
-/* DeepSeek Sidebar Lite — 侧边栏自身样式
-   目标：零固定定位元素、零底部占位、跟随任意宽度。
-   侧边栏可以被拖到 260px，也可以在 800px 下用，都不该出现横向滚动或压住内容。 */
+/* Sidebar Ask — panel chrome
+   Goal: no fixed-position elements, no bottom placeholder, works at any width.
+   Should stay usable dragged down to ~260px and up to 800px, with no
+   horizontal scrolling and nothing overlapping the page. */
 
 :root {
   --bar-h: 34px;
@@ -42,7 +43,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- 顶栏 ---------- */
+/* ---------- top bar ---------- */
 
 .bar {
   flex: 0 0 auto;
@@ -67,7 +68,7 @@ body {
 
 .spacer { flex: 1 1 auto; }
 
-/* 连接状态点：绿=内容脚本已就绪，灰=尚未就绪 */
+/* Status dot: green = content script ready, grey = not yet */
 .status {
   width: 6px;
   height: 6px;
@@ -100,12 +101,12 @@ body {
 .icon-btn:active { transform: scale(0.94); }
 .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-/* ---------- 内容区 ---------- */
+/* ---------- content area ---------- */
 
 .stage {
   position: relative;
   flex: 1 1 auto;
-  min-height: 0;          /* flex 子项必须显式收缩，否则 iframe 会撑破容器 */
+  min-height: 0;          /* flex children must be allowed to shrink, or the iframe overflows */
   display: flex;
 }
 
@@ -119,7 +120,7 @@ body {
   background: var(--bg);
 }
 
-/* ---------- 兜底层 ---------- */
+/* ---------- fallback layer ---------- */
 
 .fallback {
   position: absolute;

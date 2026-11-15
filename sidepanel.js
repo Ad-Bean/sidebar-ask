@@ -1,13 +1,43 @@
 /**
- * DeepSeek Sidebar Lite — 侧边栏逻辑
+ * Sidebar Ask — panel logic
  *
- * 没有底部横幅、没有评分提示、没有埋点。
- * 只做三件事：载入 iframe、探测它是否真的活着、提供独立窗口作为兜底。
+ * No bottom banner, no rate prompt, no analytics.
+ * Three jobs: load the iframe, check whether it is actually alive, and offer a
+ * standalone window as a fallback.
  */
 
 const CHAT_URL = 'https://chat.deepseek.com/';
 const PING_INTERVAL = 600;
 const GIVE_UP_MS = 7000;
+
+/* ---------- localization ---------- */
+
+const t = (key, fallback) => {
+  try {
+    return chrome.i18n.getMessage(key) || fallback;
+  } catch (_) {
+    return fallback;
+  }
+};
+
+function localize() {
+  const uiLang = (chrome.i18n.getUILanguage && chrome.i18n.getUILanguage()) || 'en';
+  document.documentElement.lang = uiLang;
+
+  for (const el of document.querySelectorAll('[data-i18n]')) {
+    const msg = t(el.dataset.i18n, '');
+    if (msg) el.textContent = msg;
+  }
+
+  for (const el of document.querySelectorAll('[data-i18n-title]')) {
+    const msg = t(el.dataset.i18nTitle, '');
+    if (!msg) continue;
+    el.title = msg;
+    if (el.hasAttribute('aria-label')) el.setAttribute('aria-label', msg);
+  }
+}
+
+localize();
 
 let frame = document.getElementById('frame');
 const fallbackEl = document.getElementById('fallback');
@@ -17,24 +47,24 @@ let alive = false;
 let startedAt = 0;
 let timer = null;
 
-/* ---------- 状态灯 ---------- */
+/* ---------- status dot ---------- */
 
 function setAlive(v) {
   alive = v;
   statusEl.classList.toggle('on', v);
-  statusEl.title = v ? '已就绪' : '未连接';
+  statusEl.title = v ? t('statusReady', 'Ready') : t('statusIdle', 'Not connected');
 }
 
-/* ---------- 存活探测 ----------
-   iframe 被 X-Frame-Options 拦住时，load 事件依然会触发，
-   所以不能靠 load 判断成功。只有内容脚本真的跑起来了、
-   回了 pong，才算活着。 */
+/* ---------- liveness probe ----------
+   A blocked iframe still fires `load`, so load cannot be used as a success
+   signal. The frame counts as alive only once the content script actually ran
+   and answered with a pong. */
 
 function ping() {
   try {
     frame.contentWindow.postMessage({ __dsLite: true, type: 'ping' }, '*');
   } catch (_) {
-    /* iframe 尚未成型 */
+    /* iframe not ready yet */
   }
 }
 
@@ -59,7 +89,7 @@ function startWatchdog() {
   ping();
 }
 
-/* ---------- 兜底层 ---------- */
+/* ---------- fallback layer ---------- */
 
 function showFallback() {
   if (alive) return;
@@ -70,7 +100,7 @@ function hideFallback() {
   fallbackEl.hidden = true;
 }
 
-/* ---------- 来自内容脚本的消息 ---------- */
+/* ---------- messages from the content script ---------- */
 
 window.addEventListener('message', (ev) => {
   const d = ev.data;
@@ -91,7 +121,7 @@ window.addEventListener('message', (ev) => {
   }
 });
 
-/* 注入成功后给个极短反馈，不弹窗、不留痕 */
+/* Tiny confirmation that text landed — no toast, no trace left behind */
 function flash() {
   const mark = document.querySelector('.mark');
   if (!mark) return;
@@ -101,12 +131,12 @@ function flash() {
   );
 }
 
-/* ---------- 载入 / 重载 ---------- */
+/* ---------- load / reload ---------- */
 
 function bindFrame() {
   frame.addEventListener('load', () => {
     ping();
-    // 有些情况下内容脚本注入晚于 load，再补两拍
+    // The content script sometimes lands after `load`, so follow up twice
     setTimeout(ping, 400);
     setTimeout(ping, 1200);
   });
@@ -122,9 +152,9 @@ function reloadFrame() {
   startWatchdog();
 }
 
-/* ---------- 独立窗口（兜底路径）----------
-   独立窗口里 chat.deepseek.com 是顶层文档，不受 frame-ancestors 限制，
-   内容脚本也一定注入得进去。 */
+/* ---------- standalone window (fallback path) ----------
+   As a top-level document, chat.deepseek.com is not subject to
+   frame-ancestors there, and the content script always gets injected. */
 
 async function popOut() {
   try {
@@ -152,12 +182,12 @@ async function popOut() {
       focused: true
     });
   } catch (err) {
-    console.warn('[ds-lite] popOut failed:', err);
+    console.warn('[sidebar-ask] popOut failed:', err);
     chrome.tabs.create({ url: CHAT_URL });
   }
 }
 
-/* ---------- 绑定 ---------- */
+/* ---------- wiring ---------- */
 
 document.getElementById('btnReload').addEventListener('click', reloadFrame);
 document.getElementById('btnPopout').addEventListener('click', popOut);

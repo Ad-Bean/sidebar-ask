@@ -1,0 +1,48 @@
+{
+  "extName": {
+    "message": "Sidebar Ask",
+    "description": "扩展名称，中英文保持一致。"
+  },
+  "extDesc": {
+    "message": "极简侧边栏问答：选中任意文字右键，内容直接带进 DeepSeek 输入框，按 Enter 即发。无横幅、无埋点。",
+    "description": "扩展列表与商店中显示的简介。"
+  },
+  "actionTitle": {
+    "message": "打开侧边栏",
+    "description": "工具栏图标提示。"
+  },
+  "menuAsk": {
+    "message": "问 DeepSeek：「%s」",
+    "description": "%s 会被替换为选中的文字。"
+  },
+  "menuOpen": {
+    "message": "打开侧边栏",
+    "description": "未选中文字时显示的菜单项。"
+  },
+  "popoutTitle": {
+    "message": "在独立窗口中打开"
+  },
+  "reloadTitle": {
+    "message": "重新加载（回到新对话）"
+  },
+  "fbTitle": {
+    "message": "无法内嵌显示"
+  },
+  "fbBody": {
+    "message": "站点拒绝在框架内加载，或网络未能连通。可以用独立窗口继续，功能完全一致。"
+  },
+  "fbPopout": {
+    "message": "在独立窗口中打开"
+  },
+  "fbRetry": {
+    "message": "重试"
+  },
+  "statusReady": {
+    "message": "已就绪",
+    "description": "内嵌页面存活时的提示。"
+  },
+  "statusIdle": {
+    "message": "未连接",
+    "description": "内嵌页面尚未响应时的提示。"
+  }
+}

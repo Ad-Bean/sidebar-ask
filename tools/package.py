@@ -1,18 +1,23 @@
-"""打包发布用 zip：只含运行时文件，manifest.json 位于 zip 根部，可直接上传商店。
+"""Build the release zip.
 
-用法：
+Only runtime files are packed, with manifest.json at the zip root so the
+archive can be uploaded to an extension store as-is.
+
+Usage:
     python tools/package.py
-产物：
-    dist/sidebar-ask-v<version>.zip
+Output:
+    dist/<slug>-v<version>.zip
 """
 import json
 import os
 import zipfile
 
+SLUG = "sidebar-ask"
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, "dist")
 
-# 运行时需要的文件，顺序无关，但显式列出可防止把 README/LICENSE 之类打进去
+# Explicit list on purpose: keeps README/LICENSE/tools out of the archive.
 FILES = [
     "manifest.json",
     "rules.json",
@@ -21,6 +26,8 @@ FILES = [
     "sidepanel.html",
     "sidepanel.css",
     "sidepanel.js",
+    "_locales/en/messages.json",
+    "_locales/zh_CN/messages.json",
     "icons/icon16.png",
     "icons/icon32.png",
     "icons/icon48.png",
@@ -28,34 +35,42 @@ FILES = [
 ]
 
 
+def read_json(*parts):
+    with open(os.path.join(ROOT, *parts), encoding="utf-8") as f:
+        return json.load(f)
+
+
 def main():
-    with open(os.path.join(ROOT, "manifest.json"), encoding="utf-8") as f:
-        manifest = json.load(f)
+    manifest = read_json("manifest.json")
     version = manifest["version"]
-    name = manifest["name"].lower().replace(" ", "-")
+
+    # name/description live in _locales now, so resolve the display name there
+    display_name = read_json("_locales", "en", "messages.json")["extName"]["message"]
 
     os.makedirs(DIST, exist_ok=True)
-    out = os.path.join(DIST, f"{name}-v{version}.zip")
+    out = os.path.join(DIST, f"{SLUG}-v{version}.zip")
 
     missing = [p for p in FILES if not os.path.isfile(os.path.join(ROOT, p))]
     if missing:
-        raise SystemExit(f"缺少文件: {missing}")
+        raise SystemExit(f"missing files: {missing}")
 
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for rel in FILES:
             z.write(os.path.join(ROOT, rel), rel)
 
     size = os.path.getsize(out)
-    print(f"已生成 {out}  ({size / 1024:.1f} KB, {len(FILES)} 个文件)")
+    print(f"built {out}  ({size / 1024:.1f} KB, {len(FILES)} files)")
 
-    # 回读校验：确认 zip 里的 manifest 能解析、版本一致
+    # read back: archive must be valid and self-consistent
     with zipfile.ZipFile(out) as z:
         bad = z.testzip()
         if bad:
-            raise SystemExit(f"zip 损坏: {bad}")
+            raise SystemExit(f"corrupt entry: {bad}")
         inner = json.loads(z.read("manifest.json").decode("utf-8"))
-        assert inner["version"] == version, "版本不一致"
-        print(f"校验通过：{inner['name']} v{inner['version']}")
+        assert inner["version"] == version, "version mismatch"
+        assert inner.get("default_locale"), "default_locale missing"
+        assert "_locales/en/messages.json" in z.namelist(), "_locales not packed"
+        print(f"verified: {display_name} v{inner['version']}")
 
 
 if __name__ == "__main__":

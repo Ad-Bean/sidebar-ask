@@ -1,0 +1,48 @@
+{
+  "extName": {
+    "message": "Sidebar Ask",
+    "description": "Extension name shown in the browser UI and store listings."
+  },
+  "extDesc": {
+    "message": "A minimal sidebar for DeepSeek. Select text on any page, right-click, and it lands in the input box — ready to send. No banners, no analytics.",
+    "description": "Shown in the extensions list and the store."
+  },
+  "actionTitle": {
+    "message": "Open sidebar",
+    "description": "Tooltip on the toolbar icon."
+  },
+  "menuAsk": {
+    "message": "Ask DeepSeek about “%s”",
+    "description": "%s is replaced by the selected text."
+  },
+  "menuOpen": {
+    "message": "Open sidebar",
+    "description": "Context menu item shown when nothing is selected."
+  },
+  "popoutTitle": {
+    "message": "Open in a separate window"
+  },
+  "reloadTitle": {
+    "message": "Reload (back to a new chat)"
+  },
+  "fbTitle": {
+    "message": "Couldn’t embed the site"
+  },
+  "fbBody": {
+    "message": "The site refused to load inside a frame, or the network failed. You can keep using it in a separate window — everything works the same."
+  },
+  "fbPopout": {
+    "message": "Open in a window"
+  },
+  "fbRetry": {
+    "message": "Retry"
+  },
+  "statusReady": {
+    "message": "Ready",
+    "description": "Tooltip when the embedded page is alive."
+  },
+  "statusIdle": {
+    "message": "Not connected",
+    "description": "Tooltip before the embedded page responds."
+  }
+}
