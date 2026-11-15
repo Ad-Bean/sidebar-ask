@@ -1,0 +1,57 @@
+name: release
+
+# Push a tag like v1.0.2 and this builds the zip and attaches it to a release.
+# The version in manifest.json must match the tag, or the job stops here.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate
+        run: python tools/validate.py
+
+      - name: Check the tag matches manifest.json
+        run: |
+          python - <<'EOF'
+          import json, os, sys
+          version = json.load(open("manifest.json", encoding="utf-8"))["version"]
+          tag = os.environ["GITHUB_REF_NAME"].lstrip("v")
+          if version != tag:
+              sys.exit(f"manifest version {version!r} != tag {tag!r}")
+          print(f"version {version} matches tag")
+          EOF
+
+      - name: Build
+        run: python tools/package.py
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG already exists — uploading asset"
+            gh release upload "$TAG" dist/*.zip --clobber
+          else
+            gh release create "$TAG" dist/*.zip \
+              --title "$TAG" \
+              --generate-notes \
+              --verify-tag
+          fi

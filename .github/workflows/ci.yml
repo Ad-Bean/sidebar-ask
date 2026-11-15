@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate manifest, locales and scripts
+        run: python tools/validate.py
+
+      - name: Build the release zip
+        run: python tools/package.py
+
+      - name: Show what would ship
+        run: |
+          python - <<'EOF'
+          import zipfile, glob
+          z = zipfile.ZipFile(glob.glob('dist/*.zip')[0])
+          for info in z.infolist():
+              print(f"{info.file_size:>7}  {info.filename}")
+          EOF
