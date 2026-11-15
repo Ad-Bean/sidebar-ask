@@ -1,14 +1,14 @@
-# 构建/浏览器产物
+# Build output / browser artefacts
 dist/
 *.zip
 _metadata/
 
-# 系统垃圾
+# OS junk
 Thumbs.db
 Desktop.ini
 .DS_Store
 
-# 编辑器
+# Editors
 .vscode/
 .idea/
 *.swp
