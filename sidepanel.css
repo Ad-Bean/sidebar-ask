@@ -1,0 +1,177 @@
+/* DeepSeek Sidebar Lite — 侧边栏自身样式
+   目标：零固定定位元素、零底部占位、跟随任意宽度。
+   侧边栏可以被拖到 260px，也可以在 800px 下用，都不该出现横向滚动或压住内容。 */
+
+:root {
+  --bar-h: 34px;
+  --fg: #1f2023;
+  --fg-dim: #8b8f96;
+  --bg: #ffffff;
+  --bar-bg: #f7f8fa;
+  --border: rgba(0, 0, 0, 0.08);
+  --hover: rgba(0, 0, 0, 0.06);
+  --accent: #3F4855;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg: #e8eaed;
+    --fg-dim: #8b9099;
+    --bg: #1b1c1e;
+    --bar-bg: #1f2124;
+    --border: rgba(255, 255, 255, 0.09);
+    --hover: rgba(255, 255, 255, 0.09);
+    --accent: #55606F;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+  font: 12px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 顶栏 ---------- */
+
+.bar {
+  flex: 0 0 auto;
+  height: var(--bar-h);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px 0 9px;
+  background: var(--bar-bg);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+
+.mark { display: flex; align-items: center; }
+
+.label {
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+.spacer { flex: 1 1 auto; }
+
+/* 连接状态点：绿=内容脚本已就绪，灰=尚未就绪 */
+.status {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fg-dim);
+  opacity: 0.55;
+  transition: background 0.2s, opacity 0.2s;
+  flex: 0 0 auto;
+}
+.status.on {
+  background: #22c55e;
+  opacity: 1;
+}
+
+.icon-btn {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg-dim);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.icon-btn:hover { background: var(--hover); color: var(--fg); }
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- 内容区 ---------- */
+
+.stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;          /* flex 子项必须显式收缩，否则 iframe 会撑破容器 */
+  display: flex;
+}
+
+#frame {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  display: block;
+  background: var(--bg);
+}
+
+/* ---------- 兜底层 ---------- */
+
+.fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 24px;
+  text-align: center;
+  background: var(--bg);
+}
+.fallback[hidden] { display: none; }
+
+.fb-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.fb-body {
+  margin: 0 0 8px;
+  max-width: 260px;
+  color: var(--fg-dim);
+  line-height: 1.6;
+}
+
+.fb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.btn {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--hover); }
+.btn.primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+.btn.primary:hover { filter: brightness(1.08); }
