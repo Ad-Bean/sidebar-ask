@@ -44,5 +44,41 @@
   "statusIdle": {
     "message": "Not connected",
     "description": "Tooltip before the embedded page responds."
+  },
+  "noticeSignIn": {
+    "message": "Sign in to place the text",
+    "description": "Shown when the embedded page is on the sign-in screen."
+  },
+  "noticeNoInput": {
+    "message": "Input box not found",
+    "description": "The page loaded but no textarea was found."
+  },
+  "noticeFailed": {
+    "message": "Couldn’t place the text",
+    "description": "Generic injection failure."
+  },
+  "noticeDetails": {
+    "message": "Details",
+    "description": "Opens the diagnostics view."
+  },
+  "noticeClose": {
+    "message": "Dismiss",
+    "description": "Closes the failure notice."
+  },
+  "diagTitle": {
+    "message": "Diagnostics",
+    "description": "Title of the diagnostics overlay."
+  },
+  "diagCopy": {
+    "message": "Copy",
+    "description": "Copies the diagnostics text."
+  },
+  "diagCopied": {
+    "message": "Copied",
+    "description": "Confirmation after copying."
+  },
+  "diagClose": {
+    "message": "Close",
+    "description": "Closes the diagnostics overlay."
   }
 }

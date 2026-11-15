@@ -44,5 +44,41 @@
   "statusIdle": {
     "message": "未连接",
     "description": "内嵌页面尚未响应时的提示。"
+  },
+  "noticeSignIn": {
+    "message": "登录后文字会自动落入输入框",
+    "description": "内嵌页面停在登录页时显示。"
+  },
+  "noticeNoInput": {
+    "message": "没找到输入框",
+    "description": "页面已加载但没找到输入框。"
+  },
+  "noticeFailed": {
+    "message": "文字未能写入",
+    "description": "通用的注入失败提示。"
+  },
+  "noticeDetails": {
+    "message": "详情",
+    "description": "打开诊断信息。"
+  },
+  "noticeClose": {
+    "message": "关闭提示",
+    "description": "关闭失败提示。"
+  },
+  "diagTitle": {
+    "message": "诊断信息",
+    "description": "诊断浮层标题。"
+  },
+  "diagCopy": {
+    "message": "复制",
+    "description": "复制诊断文本。"
+  },
+  "diagCopied": {
+    "message": "已复制",
+    "description": "复制后的确认。"
+  },
+  "diagClose": {
+    "message": "关闭",
+    "description": "关闭诊断浮层。"
   }
 }

@@ -38,6 +38,17 @@
     </button>
   </header>
 
+  <!-- Pushes the page down instead of covering it: no fixed overlays anywhere -->
+  <div class="notice" id="notice" hidden>
+    <span class="notice-text" id="noticeText"></span>
+    <button class="link-btn" id="noticeDetails" data-i18n="noticeDetails">Details</button>
+    <button class="icon-btn tiny" id="noticeClose" data-i18n-title="noticeClose" title="Dismiss" aria-label="Dismiss">
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <path d="M4 4l8 8M12 4l-8 8" />
+      </svg>
+    </button>
+  </div>
+
   <main class="stage">
     <iframe
       id="frame"
@@ -53,6 +64,20 @@
         <button class="btn primary" id="fbPopout" data-i18n="fbPopout">Open in a window</button>
         <button class="btn" id="fbRetry" data-i18n="fbRetry">Retry</button>
       </div>
+    </div>
+
+    <div class="diag" id="diag" hidden>
+      <div class="diag-head">
+        <span data-i18n="diagTitle">Diagnostics</span>
+        <span class="spacer"></span>
+        <button class="btn small" id="diagCopy" data-i18n="diagCopy">Copy</button>
+        <button class="icon-btn" id="diagClose" data-i18n-title="diagClose" title="Close" aria-label="Close">
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <path d="M4 4l8 8M12 4l-8 8" />
+          </svg>
+        </button>
+      </div>
+      <pre id="diagBody"></pre>
     </div>
   </main>
 

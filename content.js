@@ -20,6 +20,7 @@
   const PENDING_KEY = 'dsPending';
   const TTL_MS = 120000;   // how long a pending entry stays valid: 2 minutes
   const FAST_MS = 12000;   // poll quickly for the first 12s (while the SPA mounts)
+  const STALL_MS = 10000;  // after this long with no input box, tell the panel
   const MAX_WRITES = 4;    // cap writes per text so a retry never appends twice
   const PRIMARY_SEL = 'textarea[name="user query"]';
 
@@ -44,6 +45,26 @@
       if (usable(el)) return el;
     }
     return null;
+  }
+
+  /** Snapshot of what we can see, sent to the panel so the user can self-diagnose */
+  function snapshot() {
+    const primary = document.querySelectorAll(PRIMARY_SEL);
+    const all = document.querySelectorAll('textarea');
+    let visible = 0;
+    for (const el of all) {
+      if (usable(el)) visible += 1;
+    }
+    return {
+      href: location.href,
+      inFrame: window.parent !== window,
+      signedOut: /\/sign_in/.test(location.pathname),
+      primarySel: PRIMARY_SEL,
+      primaryCount: primary.length,
+      textareaCount: all.length,
+      visibleCount: visible,
+      title: document.title
+    };
   }
 
   function setNativeValue(el, value) {
@@ -77,10 +98,21 @@
     injecting = true;
 
     let writes = 0;
+    let stalled = false;
     const t0 = Date.now();
 
     try {
       while (Date.now() < deadline) {
+        // Don't leave the user staring at nothing for two minutes: report early,
+        // then keep retrying quietly in the background.
+        if (!stalled && Date.now() - t0 > STALL_MS) {
+          stalled = true;
+          const snap = snapshot();
+          if (!snap.visibleCount) {
+            notifyParent({ type: 'inject-stalled', reason: 'no-input', diag: snap });
+          }
+        }
+
         const el = findInput();
 
         if (el) {
@@ -142,16 +174,21 @@
 
     handledNonce = p.nonce || 0;
 
-    // While signed out the page sits on /sign_in and has no input box.
-    // Don't give up: keep trying for the full TTL so the text still lands
-    // once the user is through the login screen.
+    // Signed out is diagnosable right away — say so instead of waiting it out.
+    // Retrying still continues for the full TTL, so the text lands once the
+    // user is through the login screen.
+    const pre = snapshot();
+    if (pre.signedOut) {
+      notifyParent({ type: 'inject-stalled', reason: 'signed-out', diag: pre });
+    }
+
     const ok = await inject(p.text, ts + TTL_MS);
 
     if (ok) {
       try { await chrome.storage.local.remove(PENDING_KEY); } catch (_) {}
     }
 
-    notifyParent({ type: 'inject-result', ok });
+    notifyParent({ type: 'inject-result', ok, diag: snapshot() });
   }
 
   function notifyParent(msg) {

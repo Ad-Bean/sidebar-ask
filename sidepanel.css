@@ -12,6 +12,8 @@
   --border: rgba(0, 0, 0, 0.08);
   --hover: rgba(0, 0, 0, 0.06);
   --accent: #3F4855;
+  --warn-bg: #fff8e6;
+  --warn-fg: #7a5b00;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,6 +25,8 @@
     --border: rgba(255, 255, 255, 0.09);
     --hover: rgba(255, 255, 255, 0.09);
     --accent: #55606F;
+    --warn-bg: #2a2313;
+    --warn-fg: #e3c98a;
   }
 }
 
@@ -100,6 +104,82 @@ body {
 .icon-btn:hover { background: var(--hover); color: var(--fg); }
 .icon-btn:active { transform: scale(0.94); }
 .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.icon-btn.tiny { width: 20px; height: 20px; }
+
+/* ---------- failure notice ----------
+   Sits between the bar and the page, so it never covers the embedded site.
+   A green status dot alone would be misleading: the content script can be
+   alive while the text still failed to land. */
+
+.notice {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 10px;
+  background: var(--warn-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.notice[hidden] { display: none; }
+
+.notice-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--warn-fg);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.link-btn {
+  flex: 0 0 auto;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: var(--warn-fg);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.link-btn:hover { opacity: 0.75; }
+
+/* ---------- diagnostics ---------- */
+
+.diag {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.diag[hidden] { display: none; }
+
+.diag-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+#diagBody {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  color: var(--fg);
+  font: 11px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+}
 
 /* ---------- content area ---------- */
 
@@ -176,3 +256,8 @@ body {
   color: #fff;
 }
 .btn.primary:hover { filter: brightness(1.08); }
+.btn.small {
+  height: 24px;
+  padding: 0 10px;
+  font-size: 11px;
+}

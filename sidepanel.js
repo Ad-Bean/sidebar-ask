@@ -42,10 +42,16 @@ localize();
 let frame = document.getElementById('frame');
 const fallbackEl = document.getElementById('fallback');
 const statusEl = document.getElementById('status');
+const noticeEl = document.getElementById('notice');
+const noticeText = document.getElementById('noticeText');
+const diagEl = document.getElementById('diag');
+const diagBody = document.getElementById('diagBody');
 
 let alive = false;
 let startedAt = 0;
 let timer = null;
+let lastDiag = null;
+let noticeReason = null;
 
 /* ---------- status dot ---------- */
 
@@ -100,6 +106,57 @@ function hideFallback() {
   fallbackEl.hidden = true;
 }
 
+/* ---------- failure notice ----------
+   A green dot only proves the content script is reachable. It says nothing
+   about whether the text landed, so failures get an explicit notice. */
+
+const REASON_KEY = {
+  'signed-out': 'noticeSignIn',
+  'no-input': 'noticeNoInput',
+  failed: 'noticeFailed'
+};
+
+function showNotice(reason) {
+  // "signed out" is the more precise diagnosis; don't let a later generic
+  // "no input box" overwrite it.
+  if (noticeReason === 'signed-out' && reason === 'no-input') return;
+
+  noticeReason = reason;
+  noticeText.textContent = t(REASON_KEY[reason] || 'noticeFailed', 'Couldn’t place the text');
+  noticeEl.hidden = false;
+}
+
+function hideNotice() {
+  noticeEl.hidden = true;
+  diagEl.hidden = true;
+  noticeReason = null;
+}
+
+function renderDiag(diag) {
+  const lines = [];
+  const push = (k, v) => lines.push(`${k.padEnd(13)}${v}`);
+
+  push('version', chrome.runtime.getManifest().version);
+  push('ui language', document.documentElement.lang || '?');
+  push('panel width', `${Math.round(window.innerWidth)}px`);
+
+  if (diag) {
+    push('frame url', diag.href || '?');
+    push('in frame', diag.inFrame ? 'yes' : 'no');
+    push('signed out', diag.signedOut ? 'yes' : 'no');
+    push('page title', diag.title || '?');
+    push('selector', diag.primarySel || '?');
+    push('  matches', String(diag.primaryCount ?? '?'));
+    push('textareas', String(diag.textareaCount ?? '?'));
+    push('  visible', String(diag.visibleCount ?? '?'));
+  } else {
+    push('frame info', 'unavailable — no response from the page');
+  }
+
+  push('time', new Date().toISOString());
+  diagBody.textContent = lines.join('\n');
+}
+
 /* ---------- messages from the content script ---------- */
 
 window.addEventListener('message', (ev) => {
@@ -116,8 +173,20 @@ window.addEventListener('message', (ev) => {
     return;
   }
 
-  if (d.type === 'inject-result' && d.ok) {
-    flash();
+  if (d.type === 'inject-stalled') {
+    lastDiag = d.diag || lastDiag;
+    showNotice(d.reason);
+    return;
+  }
+
+  if (d.type === 'inject-result') {
+    lastDiag = d.diag || lastDiag;
+    if (d.ok) {
+      hideNotice();
+      flash();
+    } else {
+      showNotice('failed');
+    }
   }
 });
 
@@ -149,6 +218,7 @@ function reloadFrame() {
   frame.replaceWith(fresh);
   frame = fresh;
   bindFrame();
+  hideNotice();
   startWatchdog();
 }
 
@@ -195,6 +265,31 @@ document.getElementById('fbRetry').addEventListener('click', () => {
   reloadFrame();
 });
 document.getElementById('fbPopout').addEventListener('click', popOut);
+
+document.getElementById('noticeDetails').addEventListener('click', () => {
+  renderDiag(lastDiag);
+  diagEl.hidden = false;
+});
+
+document.getElementById('noticeClose').addEventListener('click', hideNotice);
+
+document.getElementById('diagClose').addEventListener('click', () => {
+  diagEl.hidden = true;
+});
+
+document.getElementById('diagCopy').addEventListener('click', async () => {
+  const btn = document.getElementById('diagCopy');
+  try {
+    await navigator.clipboard.writeText(diagBody.textContent || '');
+    btn.textContent = t('diagCopied', 'Copied');
+  } catch (_) {
+    // Clipboard blocked: the text is still selectable, so point at that
+    btn.textContent = 'Ctrl+C';
+  }
+  setTimeout(() => {
+    btn.textContent = t('diagCopy', 'Copy');
+  }, 1400);
+});
 
 bindFrame();
 startWatchdog();
