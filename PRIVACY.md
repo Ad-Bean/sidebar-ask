@@ -1,31 +1,31 @@
-# 隐私说明
+# Privacy
 
-最后更新：2026-11-15
+Last updated: 2026-11-15
 
-## 一句话
+## Short version
 
-本扩展不收集、不存储、不传输任何用户数据。没有服务器，没有统计，没有遥测。
+This extension collects nothing, stores nothing of yours, and sends nothing to any server. There is no backend, no analytics, no telemetry.
 
-## 具体说明
+## Details
 
-**扩展自身不发起任何网络请求。** 唯一的网络活动是你在侧边栏里使用 DeepSeek 时，`chat.deepseek.com` 作为网页自行加载资源、提交对话内容 —— 这与你用浏览器正常访问该站点完全一致，属于站点自身行为，扩展不介入、不记录、不转发。
+**The extension makes no network requests of its own.** The only network activity is `chat.deepseek.com` loading its own resources and submitting your messages while you use the sidebar — exactly what happens when you visit the site in a normal tab. The extension does not intercept, record, or forward any of it.
 
-**不读取网页内容。** 内容脚本仅注入 `chat.deepseek.com`，且只做一件事：把你通过右键菜单选中的那段文字写入该页面的输入框。
+**It does not read page content.** The content script is injected only into `chat.deepseek.com`, and does one thing: writes the text you selected via the context menu into that page's input box.
 
-**本地存储了什么。** 浏览器本地的扩展存储里会短暂保存一段待处理文本（`dsPending`），用于把右键选中的内容送进侧边栏；注入成功后立即删除，最长保留 2 分钟。除此之外不保存任何内容。
+**What is stored locally.** A single pending-text entry (`dsPending`) is kept in the browser's extension storage, just long enough to hand the selected text to the sidebar. It is deleted as soon as the text is written into the input box, and expires after 2 minutes regardless. Nothing else is stored.
 
-**权限用途。**
+**Permissions.**
 
-| 权限 | 用途 |
+| Permission | Why |
 |---|---|
-| `sidePanel` | 显示侧边栏 |
-| `contextMenus` | 提供「问 DeepSeek」右键菜单项 |
-| `storage` | 在右键与侧边栏之间传递选中的那段文字 |
-| `declarativeNetRequestWithHostAccess` | 移除 `chat.deepseek.com` 在子框架场景下的 `X-Frame-Options` / `Content-Security-Policy` 响应头，否则该站点无法被侧边栏内嵌 |
-| `host_permissions: chat.deepseek.com` | 仅在上述站点注入脚本与修改响应头 |
+| `sidePanel` | Display the sidebar |
+| `contextMenus` | Provide the “Ask DeepSeek about …” menu item |
+| `storage` | Pass the selected text from the context menu to the sidebar |
+| `declarativeNetRequestWithHostAccess` | Remove `X-Frame-Options` / `Content-Security-Policy` from `chat.deepseek.com` sub-frame responses, without which the site refuses to be embedded |
+| `host_permissions: chat.deepseek.com` | Restrict script injection and header modification to that one site |
 
-**没有做的事。** 不收集浏览历史、不读取其他网站的页面内容、不注入分析脚本、不含广告、不含联盟链接、不向任何第三方发送数据。
+**What it does not do.** No browsing history, no reading of other sites, no analytics scripts, no ads, no affiliate links, no third-party data sharing.
 
-## 联系方式
+## Contact
 
-如对本说明有疑问，请在本仓库提交 Issue。
+Open an issue in this repository.
