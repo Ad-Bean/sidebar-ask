@@ -50,10 +50,18 @@ No data collected, no analytics, no network requests of its own. See [PRIVACY.md
 ## Development
 
 ```bash
+python tools/validate.py  # manifest, locales, key usage, JS syntax
 python tools/package.py   # builds dist/sidebar-ask-v<version>.zip
 ```
 
 Reload the extension from the extensions page to pick up changes.
+
+> **Don't remove the `key` field from `manifest.json`.** It pins the extension ID
+> (`mmcfeeiniomkadholndcenjijnjejcej`) so the ID no longer depends on where the
+> folder sits — needed when installing on several machines, and it lets the store
+> build keep the same ID later. The rule in `rules.json` is scoped to that exact
+> ID, so changing the key breaks embedding.
+
 
 ## License
 

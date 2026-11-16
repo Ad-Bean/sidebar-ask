@@ -50,8 +50,16 @@
 ## 开发
 
 ```bash
+python tools/validate.py  # 校验清单、语言包、key 引用、JS 语法
 python tools/package.py   # 生成 dist/sidebar-ask-v<version>.zip
 ```
+
+改完代码后在扩展管理页点「刷新」生效。
+
+> **不要删掉 `manifest.json` 里的 `key` 字段。** 它把扩展 ID 固定为
+> `mmcfeeiniomkadholndcenjijnjejcej`，不再随安装路径变化 —— 多台机器安装时需要它，
+> 将来上架商店也能沿用同一个 ID。`rules.json` 的规则正是按这个 ID 限定作用域的，
+> 换掉 key 会导致内嵌失效。
 
 改完代码后在扩展管理页点「刷新」生效。
 

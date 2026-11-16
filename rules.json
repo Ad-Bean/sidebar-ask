@@ -12,7 +12,8 @@
     },
     "condition": {
       "urlFilter": "||chat.deepseek.com/",
-      "resourceTypes": ["sub_frame"]
+      "resourceTypes": ["sub_frame"],
+      "initiatorDomains": ["mmcfeeiniomkadholndcenjijnjejcej"]
     }
   }
 ]

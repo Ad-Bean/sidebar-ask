@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extName__",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "__MSG_extDesc__",
   "default_locale": "en",
   "minimum_chrome_version": "116",
@@ -55,5 +55,6 @@
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuCesG1Z8Kj9aXKlhJDH6fiC4iS1mYJKxVk8Lhof93uthna29S05kio0n9R121pKjPjk5hM7auQqK4T6NgN0krtXLhnt/tw9Gr4EPYWrZAokfKUbad1/jSznkHcpZaThu1K3+8JkqTAUpxoiLnYRYEjRbWZU3CfETBRjViimK7b8BM/8dv8daCNA1wz4RjT+St65kMn6XKGyIjKVWue3wjcQSSrHkukcKXWb+ahnrCypF7VDH47ixVZqeEXGr8eSeytfNM6DFgHhHsfQklIllmAaW9L89Me7+Vy68sto8XO7WCveoRLPDtG5ThmcmTHM9NTj+PsgIhM9dLL980JA0ewIDAQAB"
 }
